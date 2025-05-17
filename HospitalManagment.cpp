@@ -9,6 +9,7 @@
 #include <map>
 #include <regex> //for date input validation
 #include <limits>
+#include <ctime>
 
 using namespace std;
 
@@ -57,6 +58,14 @@ struct billing {
     double amount{};
     string status;
     // add more fields as needed
+};
+
+struct Feedback {
+    string user_id;
+    string type;
+    int rating;
+    string comment;
+    string date;
 };
 
 // Placeholder functions
@@ -475,6 +484,7 @@ int main() {
                                 cout << "Enter Appointment Date (YYYY-MM-DD): ";
                                 string date_input;
                                 cin >> date_input;
+                               // ??????
                                 regex date_pattern(R"(\d{4}-\d{2}-\d{2})");
                                 while (!regex_match(date_input, date_pattern)) {
                                     cout << "Invalid date format. Please enter the date in YYYY-MM-DD format: ";
@@ -811,42 +821,141 @@ case 7:
 {
     cout << "Feedback" << endl;
     int choice6;
-    cout << "1. Patient Feedback on Staff Handling" << endl;
-    cout << "2. Patient Feedback on Facilities" << endl;
-    cout << "3. Staff Feedback on Management" << endl;
-    cout << "4. Exit" << endl;
+    cout << "1. Patient Feedback" << endl;
+    cout << "2. Staff Feedback on Management" << endl;
+    cout << "3. Exit" << endl;
+    cout << "Please enter your choice: ";
+    cin >> choice6;
+
+switch (choice6)
+{
+case 7:
+{
+    cout << "Feedback" << endl;
+    int choice6;
+    cout << "1. Patient Feedback" << endl;
+    cout << "2. Staff Feedback on Management" << endl;
+    cout << "3. Exit" << endl;
     cout << "Please enter your choice: ";
     cin >> choice6;
 
     switch (choice6)
     {
-    case 1:
-        cout << "Patient Feedback on Staff Handling" << endl;
-        // Add feedback handling
+    case 1: {
+        cout << "Patient Feedback" << endl;
+        string pid;
+        cout << "Enter Patient ID: ";
+        cin >> pid;
+        
+        bool found_patient = false;
+        for(int i=0; i<patient_count; i++) {
+            if(patients[i].id == pid) {
+                found_patient = true;
+                Feedback fb;
+                fb.user_id = pid;
+                
+                cout << "Rate our service (1-5): ";
+                while(!(cin >> fb.rating) || fb.rating < 1 || fb.rating > 5) {
+                    cout << "Invalid! Enter 1-5: ";
+                    cin.clear();
+                    cin.ignore();
+                }
+                
+                cin.ignore();
+                cout << "Comments (optional): ";
+                getline(cin, fb.comment);
+                
+                // Get current date
+                time_t now = time(0);
+                tm* t = localtime(&now);
+
+                char buf[20];
+                strftime(buf, sizeof(buf), "%Y-%m-%d", t);
+                fb.date = buf;
+                
+                // Save to file
+                fstream file("Feedback.txt", ios::app);
+                if(file.is_open()) {
+                    if(file.tellp() == 0)
+                        file << "ID\tType\tRating\tComment\tDate\n";
+                    
+                    file << pid << "\tPatient\t" 
+                         << fb.rating << "\t"
+                         << fb.comment << "\t"
+                         << fb.date << "\n";
+                    cout << "Thank you!\n";
+                }
+                break;
+            }
+        }
+        if(!found_patient) {
+            cout << "Patient not found!\n";
+        }
         break;
-    case 2:
-        cout << "Patient Feedback on Facilities" << endl;
-        // Add feedback handling
-        break;
-    case 3:
+    }
+    
+    case 2: {
         cout << "Staff Feedback on Management" << endl;
-        // Add feedback handling
+        int sid;
+        cout << "Enter Staff ID: ";
+        cin >> sid;
+        
+        bool found_staff = false;
+        for(const auto& s : staff_list) {
+            if(s.id == sid) {
+                found_staff = true;
+                Feedback fb;
+                fb.user_id = to_string(sid);
+                
+                cout << "Rate management (1-5): ";
+                while(!(cin >> fb.rating) || fb.rating < 1 || fb.rating > 5) {
+                    cout << "Invalid! Enter 1-5: ";
+                    cin.clear();
+                    cin.ignore();
+                }
+                
+                cin.ignore();
+                cout << "Suggestions (optional): ";
+                getline(cin, fb.comment);
+                
+                // Get current date
+                time_t now = time(0);
+                tm* t = localtime(&now);
+                char buf[20];
+                strftime(buf, sizeof(buf), "%Y-%m-%d", t);
+                fb.date = buf;
+                
+                // Save to file
+                fstream file("Feedback.txt", ios::app);
+                if(file.is_open()) {
+                    if(file.tellp() == 0)
+                        file << "ID\tType\tRating\tComment\tDate\n";
+                    
+                    file << sid << "\tStaff\t" 
+                         << fb.rating << "\t"
+                         << fb.comment << "\t"
+                         << fb.date << "\n";
+                    cout << "Thank you!\n";
+                }
+                break;
+            }
+        }
+        if(!found_staff) cout << "Staff not found!\n";
         break;
-    case 4:
-        cout << "Exiting..." << endl;
-        return 0;
+    }
+    
+    case 3:
+        cout << "Exiting Feedback menu..." << endl;
+        break;
+    
     default:
         cout << "Invalid choice. Please try again." << endl;
     }
-    break;
 }
-
 case 8:
     cout << "Exiting..." << endl;
     return 0;
 
 default:
     cout << "Invalid choice. Please try again." << endl;
-}
-}
 }
